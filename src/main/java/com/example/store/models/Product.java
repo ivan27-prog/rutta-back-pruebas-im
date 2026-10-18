@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Entity
 @AllArgsConstructor
@@ -35,5 +36,24 @@ public class Product {
     @JoinColumn(name = "category_id", nullable = false)
     @JsonIgnore
     private Category category;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Description> descriptions;
+
+    @ManyToMany
+    @JoinTable(
+            name = "product_has_color",
+            joinColumns = @JoinColumn(name = "product_idproducts"),
+            inverseJoinColumns = @JoinColumn(name = "color_idcolor")
+    )
+    private List<Color> colors;
+
+    @ManyToMany
+    @JoinTable(
+            name = "size_has_product",
+            joinColumns = @JoinColumn(name = "product_idproducts"),
+            inverseJoinColumns = @JoinColumn(name = "size_idsize")
+    )
+    private List<Size> sizes;
 
 }
