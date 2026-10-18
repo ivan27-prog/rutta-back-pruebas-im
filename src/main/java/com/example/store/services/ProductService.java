@@ -1,49 +1,73 @@
 package com.example.store.services;
 
-import com.example.store.datos.ProductRequest;
+import com.example.store.dtos.ProductRequest;
 import com.example.store.exceptions.ResourceNotFoundException;
+import com.example.store.models.Category;
+import com.example.store.models.Color;
 import com.example.store.models.Product;
+import com.example.store.models.Size;
+import com.example.store.repository.CategoryRepository;
+import com.example.store.repository.ColorRepository;
 import com.example.store.repository.ProductRepository;
-import lombok.AllArgsConstructor;
+import com.example.store.repository.SizeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-//Product Service es la lógica de negocio sobre la entidad de Producto
 @Service
 public class ProductService {
-    private ProductRepository productRepository;
+    private final ProductRepository productRepository;
+    private final CategoryRepository categoryRepository;
+    private final ColorRepository colorRepository;
+    private final SizeRepository sizeRepository;
 
-    // private CategoryRepository categoryRepository;
     @Autowired
-    public ProductService(ProductRepository productRepository) {
+    public ProductService(ProductRepository productRepository,
+                          CategoryRepository categoryRepository,
+                          ColorRepository colorRepository,
+                          SizeRepository sizeRepository) {
         this.productRepository = productRepository;
+        this.categoryRepository = categoryRepository;
+        this.colorRepository = colorRepository;
+        this.sizeRepository = sizeRepository;
     }
 
-    // Método para obtener todos los productos
     public List<Product> getAllProducts() {
         return productRepository.findAll();
     }
 
-    // Método para obtener un producto por su ID
-    public Product getProductById(long id) {
+    public Product getProductById(Long id) {
         return productRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("Producto con el id + " + id + " no encontrado"));
+                () -> new ResourceNotFoundException("Producto con el id " + id + " no encontrado"));
     }
 
-    // Metodo para crear producto
     public Product createProduct(ProductRequest newProduct) {
+        Category category = categoryRepository.findById(newProduct.categoryId()).orElseThrow(
+                () -> new ResourceNotFoundException("Categoría con el id " + newProduct.categoryId() + " no encontrada")
+        );
+
         Product product = new Product();
         product.setProductName(newProduct.productName());
         product.setPrice(newProduct.price());
         product.setActivity(newProduct.activity());
         product.setLevel(newProduct.level());
+        product.setCategory(category);
+
+        if (newProduct.colorIds() != null && !newProduct.colorIds().isEmpty()) {
+            List<Color> colors = colorRepository.findAllById(newProduct.colorIds());
+            product.setColors(colors);
+        }
+
+        if (newProduct.sizeIds() != null && !newProduct.sizeIds().isEmpty()) {
+            List<Size> sizes = sizeRepository.findAllById(newProduct.sizeIds());
+            product.setSizes(sizes);
+        }
+
         return productRepository.save(product);
     }
 
-    // Método para actualizar product
-    public Product updateProduct(long id, ProductRequest updateProduct) {
+    public Product updateProduct(Long id, ProductRequest updateProduct) {
         Product oldProduct = productRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Producto con el id " + id + " no encontrado"));
         if (updateProduct.productName() != null)
@@ -54,20 +78,27 @@ public class ProductService {
             oldProduct.setActivity(updateProduct.activity());
         if (updateProduct.level() != null)
             oldProduct.setLevel(updateProduct.level());
+        if (updateProduct.categoryId() != null) {
+            Category category = categoryRepository.findById(updateProduct.categoryId()).orElseThrow(
+                    () -> new ResourceNotFoundException("Categoría con el id " + updateProduct.categoryId() + " no encontrada")
+            );
+            oldProduct.setCategory(category);
+        }
+        if (updateProduct.colorIds() != null) {
+            List<Color> colors = colorRepository.findAllById(updateProduct.colorIds());
+            oldProduct.setColors(colors);
+        }
+        if (updateProduct.sizeIds() != null) {
+            List<Size> sizes = sizeRepository.findAllById(updateProduct.sizeIds());
+            oldProduct.setSizes(sizes);
+        }
         return productRepository.save(oldProduct);
     }
 
-    // Metodo para eliminar producto
-    public Product deleteProduct(long id) {
-        // 1. Buscar el producto; si no existe, lanzar la excepción
+    public Product deleteProduct(Long id) {
         Product product = productRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Producto con el id " + id + " no encontrado"));
-
-        // 2. Borrarlo de la base de datos
         productRepository.delete(product);
-
-        // 3. Regresar el producto que se borró
         return product;
     }
-
-}// Cierre de clase ProductService
+}

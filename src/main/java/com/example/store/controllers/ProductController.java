@@ -1,7 +1,7 @@
 package com.example.store.controllers;
 
 
-import com.example.store.datos.ProductRequest;
+import com.example.store.dtos.ProductRequest;
 import com.example.store.models.Product;
 import com.example.store.services.ProductService;
 import jakarta.validation.Valid;
@@ -15,6 +15,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping(path = "/api/product") //url: http:localhost:8080/api/product
+@CrossOrigin(origins = "*")
 public class ProductController {
 
     private final ProductService productService;
@@ -23,7 +24,7 @@ public class ProductController {
     public ProductController(ProductService productService) {
         this.productService = productService;
     }
-   //Petición Get todos los productos
+    //Petición Get todos los productos
     @GetMapping
     public ResponseEntity<List<Product>> getAllProducts() {
         List<Product> products = productService.getAllProducts();
@@ -48,7 +49,7 @@ public class ProductController {
 
     //Petición Put
     @PutMapping(path = "{productId}")
-    public ResponseEntity<Product> updateProductById(@PathVariable("productId") Long productId, @Valid @RequestBody ProductRequest productRequest) {
+    public ResponseEntity<Product> updateProductById(@PathVariable("productId") Long productId, @RequestBody ProductRequest productRequest) {
         Product product = productService.updateProduct(productId, productRequest);
         return ResponseEntity.ok(product);
     }
@@ -59,4 +60,3 @@ public class ProductController {
         return ResponseEntity.ok(product);
     }
 } //Cierre de clase ProductController
-

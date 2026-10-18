@@ -1,6 +1,5 @@
 package com.example.store.models;
 
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -32,11 +31,9 @@ public class Product {
     @Column(name = "level")
     private String level;
 
-    //@ManyToOne
-    //@JoinColumn(name = "category_id", nullable = false)
-    //@JsonIgnore
-    //private Category category;
-
-
+    @ManyToOne
+    @JoinColumn(name = "category_id", nullable = false)
+    @JsonIgnore
+    private Category category;
 
 }
